@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">OpenFat</string>
+
+    <!-- Общее -->
+    <string name="ok">ОК</string>
+    <string name="cancel">Отмена</string>
+    <string name="save">Сохранить</string>
+    <string name="add">Добавить</string>
+    <string name="delete">Удалить</string>
+    <string name="rename">Переименовать</string>
+    <string name="restore">Восстановить</string>
+    <string name="undo">Отменить</string>
+    <string name="back">Назад</string>
+    <string name="close">Закрыть</string>
+    <string name="clear">Очистить</string>
+    <string name="name">Название</string>
+    <string name="nothing_found">Ничего не найдено</string>
+
+    <!-- Вкладки -->
+    <string name="tab_diary">Дневник</string>
+    <string name="tab_weight">Вес</string>
+    <string name="tab_settings">Настройки</string>
+
+    <!-- Даты -->
+    <string name="today">Сегодня</string>
+    <string name="yesterday">Вчера</string>
+    <string name="tomorrow">Завтра</string>
+    <string name="pick_date">Выбрать дату</string>
+    <string name="previous_day">Предыдущий день</string>
+    <string name="next_day">Следующий день</string>
+    <string name="date_value">Дата: %1$s</string>
+
+    <!-- Единицы и КБЖУ -->
+    <string name="kcal">ккал</string>
+    <string name="kcal_value">%1$s ккал</string>
+    <string name="kcal_per_100">%1$s ккал/100 г</string>
+    <string name="protein">Белки</string>
+    <string name="fat">Жиры</string>
+    <string name="carbs">Углеводы</string>
+    <string name="protein_short">Б</string>
+    <string name="fat_short">Ж</string>
+    <string name="carbs_short">У</string>
+    <string name="macros_line">Б %1$s · Ж %2$s · У %3$s</string>
+    <string name="unit_gram">г</string>
+    <string name="unit_serving">порц.</string>
+    <string name="unit_piece">шт</string>
+    <string name="amount">Количество</string>
+    <string name="amount_grams">%1$s г</string>
+    <string name="amount_with_grams">%1$s %2$s (%3$s г)</string>
+    <string name="equals_grams">= %1$s г</string>
+    <string name="grams_of">%1$s / %2$s г</string>
+    <string name="kg">кг</string>
+    <string name="kg_value">%1$s кг</string>
+
+    <!-- Дневник -->
+    <string name="meal_breakfast">Завтрак</string>
+    <string name="meal_lunch">Обед</string>
+    <string name="meal_dinner">Ужин</string>
+    <string name="eaten_of_norm">съедено из %1$d ккал</string>
+    <string name="remaining">осталось</string>
+    <string name="over_norm">сверх нормы</string>
+    <string name="snacks">Перекусы</string>
+    <string name="snack_at">Перекус %1$s</string>
+    <string name="snack_time">Время перекуса</string>
+    <string name="snack_actions">Действия с перекусом</string>
+    <string name="change_time">Изменить время</string>
+    <string name="add_food">Добавить еду</string>
+    <string name="add_snack">Добавить перекус</string>
+    <string name="add_meal">Добавить приём пищи</string>
+    <string name="new_meal">Новый приём пищи</string>
+    <string name="meal_name_hint">Например, полдник</string>
+    <string name="meal_every_day">Каждый день</string>
+    <string name="meal_only_on">Только %1$s</string>
+    <string name="meal_actions">Действия: %1$s</string>
+    <string name="rename_meal">Переименовать приём</string>
+    <string name="delete_meal_title">Удалить «%1$s»?</string>
+    <string name="delete_meal_text">Приём пропадёт из новых дней. Записи за прошлые дни сохранятся.</string>
+    <string name="delete_snack_title">Удалить перекус?</string>
+    <string name="delete_snack_text">Перекус будет удалён вместе со всеми его записями.</string>
+    <string name="entry_deleted">Запись удалена</string>
+    <string name="meal_or_snack">Приём пищи</string>
+    <string name="calorie_history">История калорий</string>
+
+    <!-- Добавление еды -->
+    <string name="add_to">В «%1$s»</string>
+    <string name="search_food_hint">Название продукта</string>
+    <string name="recent">Недавние</string>
+    <string name="recent_empty">Здесь появятся недавние блюда. Найдите продукт по названию, отсканируйте штрихкод или воспользуйтесь быстрым вводом.</string>
+    <string name="my_products">Мои продукты</string>
+    <string name="source_off">Open Food Facts</string>
+    <string name="source_usda">USDA FoodData Central</string>
+    <string name="off_attribution">Данные Open Food Facts, лицензия ODbL</string>
+    <string name="yazio_disabled">Войдите в YAZIO в настройках, чтобы искать здесь</string>
+    <string name="no_network">Нет сети</string>
+    <string name="source_error">Источник недоступен</string>
+    <string name="no_nutrition">Нет данных о КБЖУ</string>
+    <string name="incomplete_nutrition">КБЖУ неполное — нужно дополнить</string>
+    <string name="quick_entry">Быстрый ввод</string>
+    <string name="food_name">Название</string>
+    <string name="macros_optional">Б/Ж/У — необязательно</string>
+    <string name="scan_barcode">Сканировать штрихкод</string>
+    <string name="searching_barcode">Ищем штрихкод %1$s…</string>
+    <string name="create_product_named">Создать продукт «%1$s»</string>
+    <string name="set_piece_weight">Задать вес штуки</string>
+    <string name="msg_added">Добавлено: %1$s</string>
+    <string name="msg_not_found">Продукт не найден — заполните его вручную</string>
+    <string name="msg_incomplete">КБЖУ найдено не полностью — проверьте и дополните</string>
+    <string name="msg_network_error">Не удалось проверить штрихкод: нет сети или источник недоступен</string>
+    <string name="msg_scanner_error">Сканер недоступен. Проверьте сервисы Google Play и попробуйте снова</string>
+    <string name="msg_bad_barcode">Этот штрихкод не поддерживается</string>
+    <string name="msg_duplicate_barcode">Продукт с таким штрихкодом уже есть в справочнике</string>
+
+    <!-- Продукт -->
+    <string name="new_product">Новый продукт</string>
+    <string name="edit_product">Продукт</string>
+    <string name="product_name_required">Название *</string>
+    <string name="brand">Бренд</string>
+    <string name="barcode">Штрихкод</string>
+    <string name="per_100g">На 100 г</string>
+    <string name="kcal_required">ккал *</string>
+    <string name="macros_over_100">Сумма Б, Ж и У не может быть больше 100 г на 100 г</string>
+    <string name="portion_weights">Вес порции и штуки (необязательно)</string>
+    <string name="serving_weight">Порция</string>
+    <string name="piece_weight">1 шт</string>
+    <string name="search_products">Поиск по справочнику</string>
+    <string name="products_empty">Справочник пуст. Продукты появляются здесь, когда вы их создаёте или добавляете из поиска.</string>
+    <string name="delete_product_title">Удалить «%1$s»?</string>
+    <string name="delete_product_text">Продукт исчезнет из справочника. Записи в дневнике останутся без изменений.</string>
+
+    <!-- Вес -->
+    <string name="weight">Вес</string>
+    <string name="record_weight">Записать вес</string>
+    <string name="edit_weight">Изменить запись</string>
+    <string name="note_optional">Заметка (необязательно)</string>
+    <string name="weight_overwrite">На эту дату уже есть запись (%1$s кг) — она будет заменена</string>
+    <string name="weight_deleted">Запись веса удалена</string>
+    <string name="weight_history">Все записи</string>
+    <string name="weight_no_data">За этот период записей нет</string>
+    <string name="weight_chart_description">График веса, записей за период: %1$d</string>
+    <string name="weight_chart_legend">Точки — взвешивания, линия — тренд за 7 дней</string>
+    <string name="weight_chart_legend_target">Точки — взвешивания, линия — тренд за 7 дней, пунктир — цель</string>
+    <string name="current_weight">текущий</string>
+    <string name="change_for_period">за период</string>
+    <string name="min_weight">минимум</string>
+    <string name="max_weight">максимум</string>
+    <string name="to_target">до цели</string>
+    <string name="period_week">Неделя</string>
+    <string name="period_month">Месяц</string>
+    <string name="period_quarter">3 мес</string>
+    <string name="period_year">Год</string>
+    <string name="period_all">Всё</string>
+
+    <!-- История калорий -->
+    <string name="average_kcal">в среднем, ккал</string>
+    <string name="days_over_norm">дней сверх нормы</string>
+    <string name="history_chart_description">Калории по дням за последние %1$d дней</string>
+    <string name="history_legend">Столбцы — съедено за день, пунктир — норма этого дня, красный — сверх нормы</string>
+
+    <!-- Настройки -->
+    <string name="daily_norm">Дневная норма</string>
+    <string name="kcal_per_day">ккал в день</string>
+    <string name="pct_sum_error">Сумма процентов должна быть 100 (сейчас %1$d)</string>
+    <string name="norm_grams">Б %1$s г · Ж %2$s г · У %3$s г</string>
+    <string name="norm_history_note">Новая норма действует с сегодняшнего дня; прошлые дни сохраняют прежнюю.</string>
+    <string name="target_weight">Целевой вес</string>
+    <string name="target_weight_optional">Цель (необязательно)</string>
+    <string name="meals_management">Приёмы пищи</string>
+    <string name="meals_hint">Эти приёмы показываются каждый день. Разовые приёмы добавляются прямо в дневнике.</string>
+    <string name="deleted_meals">Удалённые</string>
+    <string name="move_up">Поднять «%1$s»</string>
+    <string name="move_down">Опустить «%1$s»</string>
+    <string name="yazio_title">Вход в YAZIO</string>
+    <string name="yazio_note">YAZIO используется первым при поиске продуктов. Если вход не выполнен, поиск продолжится через Open Food Facts.</string>
+    <string name="yazio_configured">Вход выполнен</string>
+    <string name="yazio_configured_as">Вход выполнен: %1$s</string>
+    <string name="yazio_email">E-mail</string>
+    <string name="yazio_password">Пароль</string>
+    <string name="yazio_login">Войти</string>
+    <string name="yazio_logout">Выйти из YAZIO</string>
+    <string name="source_yazio">YAZIO</string>
+    <string name="data_section">Данные</string>
+    <string name="data_local_note">Все данные хранятся только на телефоне. Делайте резервную копию в JSON, чтобы не потерять их.</string>
+    <string name="export_json">Экспорт резервной копии (JSON)</string>
+    <string name="export_diary_csv">Экспорт дневника (CSV)</string>
+    <string name="export_weight_csv">Экспорт веса (CSV)</string>
+    <string name="import_json">Импорт из JSON</string>
+    <string name="import_title">Импорт данных</string>
+    <string name="import_merge_title">Слить с текущими</string>
+    <string name="import_replace_title">Заменить всё</string>
+    <string name="import_summary">Записей еды: %1$d, веса: %2$d, продуктов: %3$d, приёмов пищи: %4$d</string>
+    <string name="import_conflicts">Конфликтов веса (будет взято значение из файла): %1$d</string>
+    <string name="import_skipped">Некорректных записей пропущено: %1$d</string>
+    <string name="import_merge">Слить</string>
+    <string name="import_replace">Заменить всё</string>
+    <string name="import_replace_confirm_title">Заменить все данные?</string>
+    <string name="import_replace_confirm_text">Текущий дневник, вес, продукты и настройки будут удалены и заменены данными из файла. Это нельзя отменить.</string>
+    <string name="about_sources">Данные о продуктах: Open Food Facts (ODbL) и YAZIO.</string>
+    <string name="msg_norm_saved">Норма сохранена</string>
+    <string name="msg_target_saved">Цель сохранена</string>
+    <string name="msg_yazio_saved">Настройки YAZIO сохранены</string>
+    <string name="msg_yazio_error">Не удалось войти в YAZIO</string>
+    <string name="msg_exported">Файл сохранён</string>
+    <string name="msg_imported">Импорт завершён</string>
+    <string name="msg_import_invalid">Это не файл резервной копии OpenFat или он повреждён</string>
+    <string name="msg_io_error">Не удалось прочитать или записать файл</string>
+
+    <string-array name="csv_diary_header">
+        <item>Дата</item>
+        <item>Приём пищи</item>
+        <item>Название</item>
+        <item>Бренд</item>
+        <item>Количество</item>
+        <item>Единица</item>
+        <item>Граммы</item>
+        <item>Ккал</item>
+        <item>Белки</item>
+        <item>Жиры</item>
+        <item>Углеводы</item>
+    </string-array>
+    <string-array name="csv_weight_header">
+        <item>Дата</item>
+        <item>Вес, кг</item>
+        <item>Заметка</item>
+    </string-array>
+
+    <!-- Серия -->
+    <plurals name="streak_description">
+        <item quantity="one">Серия: %1$d день подряд</item>
+        <item quantity="few">Серия: %1$d дня подряд</item>
+        <item quantity="many">Серия: %1$d дней подряд</item>
+        <item quantity="other">Серия: %1$d дня подряд</item>
+    </plurals>
+    <plurals name="streak_title">
+        <item quantity="one">Серия: %1$d день</item>
+        <item quantity="few">Серия: %1$d дня</item>
+        <item quantity="many">Серия: %1$d дней</item>
+        <item quantity="other">Серия: %1$d дня</item>
+    </plurals>
+    <string name="streak_today_logged">Сегодня уже записано</string>
+    <string name="streak_today_empty">Сегодня ещё ничего не записано</string>
+    <string name="streak_explanation">Дни подряд, в которые вы записывали еду. Пока сегодня ничего не записано, огонёк серый, а серия не прерывается — но и сегодняшний день в неё не идёт. День без записей прерывает серию.</string>
+    <string name="streak_days_before_today">Дней подряд до сегодняшнего дня</string>
+    <string name="streak_days_hint">Если вели учёт до OpenFat, укажите, сколько дней. Дни с записями в приложении считаются сами.</string>
+</resources>

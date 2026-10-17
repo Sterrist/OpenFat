@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Правила бэкапа для Android 10–11; на Android 12+ действует data_extraction_rules.xml -->
+<full-backup-content>
+    <!-- Токены входа YAZIO не уходят в бэкап -->
+    <exclude domain="sharedpref" path="secrets.xml" />
+</full-backup-content>
