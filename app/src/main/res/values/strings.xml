@@ -21,6 +21,7 @@
     <string name="tab_diary">Дневник</string>
     <string name="tab_weight">Вес</string>
     <string name="tab_settings">Настройки</string>
+    <string name="tab_medications">Препараты</string>
 
     <!-- Даты -->
     <string name="today">Сегодня</string>
@@ -189,12 +190,13 @@
     <string name="import_merge_title">Слить с текущими</string>
     <string name="import_replace_title">Заменить всё</string>
     <string name="import_summary">Записей еды: %1$d, веса: %2$d, продуктов: %3$d, приёмов пищи: %4$d</string>
+    <string name="import_medications">Препаратов: %1$d</string>
     <string name="import_conflicts">Конфликтов веса (будет взято значение из файла): %1$d</string>
     <string name="import_skipped">Некорректных записей пропущено: %1$d</string>
     <string name="import_merge">Слить</string>
     <string name="import_replace">Заменить всё</string>
     <string name="import_replace_confirm_title">Заменить все данные?</string>
-    <string name="import_replace_confirm_text">Текущий дневник, вес, продукты и настройки будут удалены и заменены данными из файла. Это нельзя отменить.</string>
+    <string name="import_replace_confirm_text">Текущий дневник, вес, продукты, препараты и настройки будут удалены и заменены данными из файла. Это нельзя отменить.</string>
     <string name="about_sources">Данные о продуктах: Open Food Facts (ODbL) и YAZIO.</string>
     <string name="msg_norm_saved">Норма сохранена</string>
     <string name="msg_target_saved">Цель сохранена</string>
@@ -242,4 +244,39 @@
     <string name="streak_explanation">Дни подряд, в которые вы записывали еду. Пока сегодня ничего не записано, огонёк серый, а серия не прерывается — но и сегодняшний день в неё не идёт. День без записей прерывает серию.</string>
     <string name="streak_days_before_today">Дней подряд до сегодняшнего дня</string>
     <string name="streak_days_hint">Если вели учёт до OpenFat, укажите, сколько дней. Дни с записями в приложении считаются сами.</string>
+
+    <!-- Препараты -->
+    <string name="med_channel_name">Напоминания о препаратах</string>
+    <string name="med_channel_description">Напоминает принять препарат и повторяет напоминание, пока приём не отмечен</string>
+    <string name="med_notify_due">Пора принять: %1$s</string>
+    <string name="med_notify_overdue">Приём не отмечен: %1$s</string>
+    <string name="med_yesterday_at">вчера, %1$s</string>
+    <string name="med_date_at">%1$s, %2$s</string>
+    <string name="med_action_taken">Принял</string>
+    <string name="med_action_skip">Пропустить</string>
+    <string name="med_today">Сегодня</string>
+    <string name="med_missed">Не отмечено раньше</string>
+    <string name="med_skip_all">Пропустить все</string>
+    <string name="med_list">Мои препараты</string>
+    <string name="med_add">Добавить препарат</string>
+    <string name="med_new">Новый препарат</string>
+    <string name="med_edit">Препарат</string>
+    <string name="med_name">Название</string>
+    <string name="med_dose">Дозировка</string>
+    <string name="med_dose_hint">Например, 1 таблетка</string>
+    <string name="med_times">Время приёма</string>
+    <string name="med_add_time">Добавить время</string>
+    <string name="med_remove_time">Убрать %1$s</string>
+    <string name="med_empty">Добавьте препарат, и OpenFat напомнит, когда его принять. Если приём не отмечен, напоминание повторится через 1 час, потом через 2, 3 и так далее — до раза в сутки.</string>
+    <string name="med_no_doses_today">Сегодня приёмов нет</string>
+    <string name="med_taken_at">Принят в %1$s</string>
+    <string name="med_skipped">Пропущен</string>
+    <string name="med_paused">На паузе</string>
+    <string name="med_reminders">Напоминать</string>
+    <string name="med_delete_title">Удалить препарат?</string>
+    <string name="med_delete_text">«%1$s» и вся история его приёмов будут удалены.</string>
+    <string name="med_notifications_off">Уведомления выключены — напоминаний о приёме не будет</string>
+    <string name="med_enable">Включить</string>
+    <string name="med_exact_off">Нет разрешения на точные будильники: напоминания могут приходить с опозданием</string>
+    <string name="med_allow">Разрешить</string>
 </resources>

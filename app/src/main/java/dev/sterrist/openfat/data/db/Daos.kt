@@ -212,3 +212,45 @@ interface SettingDao {
     @Upsert
     suspend fun upsertAll(items: List<SettingEntity>)
 }
+
+@Dao
+interface MedicationDao {
+    @Query("SELECT * FROM medications ORDER BY active DESC, name COLLATE NOCASE")
+    fun observeAll(): Flow<List<MedicationEntity>>
+
+    @Query("SELECT * FROM medications WHERE id = :id")
+    suspend fun byId(id: String): MedicationEntity?
+
+    @Upsert
+    suspend fun upsert(medication: MedicationEntity)
+
+    @Query("DELETE FROM medications WHERE id = :id")
+    suspend fun delete(id: String)
+
+    @Query("SELECT * FROM medications")
+    suspend fun all(): List<MedicationEntity>
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertAll(items: List<MedicationEntity>)
+
+    @Query("SELECT * FROM medication_intakes WHERE date >= :fromDay")
+    fun observeIntakesSince(fromDay: Long): Flow<List<MedicationIntakeEntity>>
+
+    @Query("SELECT * FROM medication_intakes WHERE date >= :fromDay")
+    suspend fun intakesSince(fromDay: Long): List<MedicationIntakeEntity>
+
+    @Upsert
+    suspend fun upsertIntake(intake: MedicationIntakeEntity)
+
+    @Query("SELECT * FROM medication_intakes WHERE medicationId = :medicationId AND date = :date AND time = :time")
+    suspend fun intake(medicationId: String, date: Long, time: Int): MedicationIntakeEntity?
+
+    @Query("DELETE FROM medication_intakes WHERE medicationId = :medicationId AND date = :date AND time = :time")
+    suspend fun deleteIntake(medicationId: String, date: Long, time: Int)
+
+    @Query("SELECT * FROM medication_intakes")
+    suspend fun allIntakes(): List<MedicationIntakeEntity>
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertIntakes(items: List<MedicationIntakeEntity>)
+}

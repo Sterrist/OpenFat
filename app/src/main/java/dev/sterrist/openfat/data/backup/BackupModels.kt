@@ -2,6 +2,8 @@ package dev.sterrist.openfat.data.backup
 
 import dev.sterrist.openfat.data.db.FoodEntryEntity
 import dev.sterrist.openfat.data.db.MealEntity
+import dev.sterrist.openfat.data.db.MedicationEntity
+import dev.sterrist.openfat.data.db.MedicationIntakeEntity
 import dev.sterrist.openfat.data.db.NormEntity
 import dev.sterrist.openfat.data.db.ProductEntity
 import dev.sterrist.openfat.data.db.SettingEntity
@@ -21,6 +23,8 @@ data class BackupFile(
     val weights: List<WeightEntity> = emptyList(),
     val norms: List<NormEntity> = emptyList(),
     val settings: List<SettingEntity> = emptyList(),
+    val medications: List<MedicationEntity> = emptyList(),
+    val intakes: List<MedicationIntakeEntity> = emptyList(),
 ) {
     companion object {
         const val FORMAT = "openfat-backup"
@@ -38,6 +42,7 @@ data class ImportSummary(
     val weights: Int,
     val weightConflicts: Int,
     val skippedInvalid: Int,
+    val medications: Int = 0,
 )
 
 /** Что именно будет записано в БД. Строится заранее, чтобы показать сводку до применения. */
@@ -51,6 +56,8 @@ data class ImportPlan(
     val weights: List<WeightEntity>,
     val norms: List<NormEntity>,
     val settings: List<SettingEntity>,
+    val medications: List<MedicationEntity>,
+    val intakes: List<MedicationIntakeEntity>,
     val summary: ImportSummary,
 )
 
@@ -61,4 +68,8 @@ data class LocalSnapshot(
     val snackIds: Set<String>,
     val entryIds: Set<String>,
     val weights: List<WeightEntity>,
+    val medicationIds: Set<String> = emptySet(),
+    /** Отметки о приёме как "medicationId|date|time" и их ID. */
+    val intakeKeys: Set<String> = emptySet(),
+    val intakeIds: Set<String> = emptySet(),
 )

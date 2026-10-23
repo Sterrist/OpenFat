@@ -41,6 +41,8 @@ class BackupManager(
             weights = db.weightDao().all(),
             norms = db.normDao().all(),
             settings = db.settingDao().all(),
+            medications = db.medicationDao().all(),
+            intakes = db.medicationDao().allIntakes(),
         )
         write(uri, json.encodeToString(BackupFile.serializer(), file))
     }
@@ -100,12 +102,16 @@ class BackupManager(
     suspend fun plan(sanitized: ImportPlanner.Sanitized, mode: ImportMode): ImportPlan = when (mode) {
         ImportMode.REPLACE -> ImportPlanner.planReplace(sanitized)
         ImportMode.MERGE -> {
+            val intakes = db.medicationDao().allIntakes()
             val local = LocalSnapshot(
                 products = db.productDao().all(),
                 meals = db.mealDao().all(),
                 snackIds = db.snackDao().all().mapTo(HashSet()) { it.id },
                 entryIds = db.foodEntryDao().allIds().toHashSet(),
                 weights = db.weightDao().all(),
+                medicationIds = db.medicationDao().all().mapTo(HashSet()) { it.id },
+                intakeKeys = intakes.mapTo(HashSet()) { ImportPlanner.intakeKey(it) },
+                intakeIds = intakes.mapTo(HashSet()) { it.id },
             )
             ImportPlanner.planMerge(sanitized, local)
         }
@@ -115,7 +121,7 @@ class BackupManager(
         db.withTransaction {
             if (plan.mode == ImportMode.REPLACE) {
                 val sql = db.openHelper.writableDatabase
-                listOf("food_entries", "snacks", "meals", "products", "weights", "norms", "settings")
+                listOf("food_entries", "snacks", "meals", "products", "weights", "norms", "settings", "medication_intakes", "medications")
                     .forEach { sql.execSQL("DELETE FROM $it") }
             }
             db.productDao().insertAll(plan.products)
@@ -129,6 +135,8 @@ class BackupManager(
             }
             db.normDao().upsertAll(plan.norms)
             db.settingDao().upsertAll(plan.settings)
+            db.medicationDao().insertAll(plan.medications)
+            db.medicationDao().insertIntakes(plan.intakes)
         }
     }
 

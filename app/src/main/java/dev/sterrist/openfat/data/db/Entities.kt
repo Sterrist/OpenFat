@@ -138,4 +138,50 @@ data class SettingEntity(
     val value: String,
 )
 
+/** Препарат с ежедневным расписанием приёмов. */
+@Serializable
+@Entity(tableName = "medications")
+data class MedicationEntity(
+    @PrimaryKey val id: String,
+    val name: String,
+    /** Дозировка свободным текстом: «1 таблетка», «500 мг». */
+    val dose: String?,
+    /** Время приёмов в минутах от полуночи через запятую, по возрастанию: "480,1200". */
+    val times: String,
+    val active: Boolean,
+    /**
+     * Момент (epoch millis), с которого действует расписание. Приёмы раньше него не считаются
+     * пропущенными: сдвигается при создании, смене времени и возобновлении после паузы.
+     */
+    val startAt: Long,
+    val createdAt: Long,
+) {
+    val timeList: List<Int> get() = parseTimes(times)
+
+    companion object {
+        fun parseTimes(value: String): List<Int> =
+            value.split(',').mapNotNull { it.trim().toIntOrNull() }.filter { it in 0 until 24 * 60 }.distinct().sorted()
+
+        fun formatTimes(times: Collection<Int>): String = times.distinct().sorted().joinToString(",")
+    }
+}
+
+/** Отметка о приёме препарата [medicationId] в день [date] (epochDay) в слот [time] (минуты). */
+@Serializable
+@Entity(
+    tableName = "medication_intakes",
+    foreignKeys = [ForeignKey(MedicationEntity::class, ["id"], ["medicationId"], onDelete = ForeignKey.CASCADE)],
+    indices = [Index(value = ["medicationId", "date", "time"], unique = true)],
+)
+data class MedicationIntakeEntity(
+    @PrimaryKey val id: String,
+    val medicationId: String,
+    val date: Long,
+    val time: Int,
+    /** true — принят, false — пропущен намеренно. */
+    val taken: Boolean,
+    /** Когда сделана отметка, epoch millis. */
+    val at: Long,
+)
+
 data class DayKcal(val date: Long, val kcal: Double)

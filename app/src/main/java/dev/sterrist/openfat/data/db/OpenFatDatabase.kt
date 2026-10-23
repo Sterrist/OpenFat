@@ -3,6 +3,7 @@ package dev.sterrist.openfat.data.db
 import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -39,9 +40,12 @@ class Converters {
         WeightEntity::class,
         NormEntity::class,
         SettingEntity::class,
+        MedicationEntity::class,
+        MedicationIntakeEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
+    autoMigrations = [AutoMigration(from = 1, to = 2)],
 )
 @TypeConverters(Converters::class)
 abstract class OpenFatDatabase : RoomDatabase() {
@@ -52,6 +56,7 @@ abstract class OpenFatDatabase : RoomDatabase() {
     abstract fun weightDao(): WeightDao
     abstract fun normDao(): NormDao
     abstract fun settingDao(): SettingDao
+    abstract fun medicationDao(): MedicationDao
 
     companion object {
         fun build(context: Context): OpenFatDatabase {

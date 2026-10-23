@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Значок уведомлений о препаратах (Material «medication»), одноцветный по требованиям статус-бара -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M6,3h12v2H6V3zM19,6H5v15h14V6zM16,14.5h-2.5V17h-3v-2.5H8v-3h2.5V9h3v2.5H16V14.5z" />
+</vector>

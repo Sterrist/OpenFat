@@ -198,8 +198,12 @@ fun SettingsScreen(
 
 @Composable
 private fun summaryText(s: ImportSummary, merge: Boolean): String {
-    val base = stringResource(R.string.import_summary, s.entries, s.weights, s.products, s.meals)
-    return if (merge && s.weightConflicts > 0) base + "\n" + stringResource(R.string.import_conflicts, s.weightConflicts) else base
+    val lines = buildList {
+        add(stringResource(R.string.import_summary, s.entries, s.weights, s.products, s.meals))
+        if (s.medications > 0) add(stringResource(R.string.import_medications, s.medications))
+        if (merge && s.weightConflicts > 0) add(stringResource(R.string.import_conflicts, s.weightConflicts))
+    }
+    return lines.joinToString("\n")
 }
 
 @Composable

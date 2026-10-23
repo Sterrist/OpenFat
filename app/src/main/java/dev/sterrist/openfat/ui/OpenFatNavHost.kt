@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Medication
 import androidx.compose.material.icons.filled.MonitorWeight
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Settings
@@ -15,6 +16,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -22,6 +24,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -31,6 +34,7 @@ import dev.sterrist.openfat.ui.addfood.AddFoodScreen
 import dev.sterrist.openfat.ui.diary.AddTarget
 import dev.sterrist.openfat.ui.diary.DiaryScreen
 import dev.sterrist.openfat.ui.history.CaloriesHistoryScreen
+import dev.sterrist.openfat.ui.medications.MedicationsScreen
 import dev.sterrist.openfat.ui.product.ProductsScreen
 import dev.sterrist.openfat.ui.settings.MealsScreen
 import dev.sterrist.openfat.ui.settings.SettingsScreen
@@ -41,6 +45,7 @@ import kotlin.reflect.KClass
 @Serializable data object DiaryRoute
 @Serializable data object WeightRoute
 @Serializable data object SettingsRoute
+@Serializable data object MedicationsRoute
 @Serializable data object HistoryRoute
 @Serializable data object MealsRoute
 @Serializable data object ProductsRoute
@@ -59,15 +64,21 @@ private data class Tab(val route: Any, val routeClass: KClass<*>, val label: Int
 private val tabs = listOf(
     Tab(DiaryRoute, DiaryRoute::class, R.string.tab_diary, Icons.Default.Restaurant),
     Tab(WeightRoute, WeightRoute::class, R.string.tab_weight, Icons.Default.MonitorWeight),
+    Tab(MedicationsRoute, MedicationsRoute::class, R.string.tab_medications, Icons.Default.Medication),
     Tab(SettingsRoute, SettingsRoute::class, R.string.tab_settings, Icons.Default.Settings),
 )
 
+/** [openMedicationsRequest] растёт при каждом нажатии на уведомление о приёме: тогда открывается вкладка «Препараты». */
 @Composable
-fun OpenFatNavHost() {
+fun OpenFatNavHost(openMedicationsRequest: Int = 0) {
     val nav = rememberNavController()
     val backStack by nav.currentBackStackEntryAsState()
     val destination = backStack?.destination
     val showBar = tabs.any { tab -> destination?.hasRoute(tab.routeClass) == true }
+
+    LaunchedEffect(openMedicationsRequest) {
+        if (openMedicationsRequest > 0) nav.navigateToTab(MedicationsRoute)
+    }
 
     Scaffold(
         bottomBar = {
@@ -77,13 +88,7 @@ fun OpenFatNavHost() {
                         val selected = destination?.hierarchy?.any { it.hasRoute(tab.routeClass) } == true
                         NavigationBarItem(
                             selected = selected,
-                            onClick = {
-                                nav.navigate(tab.route) {
-                                    popUpTo(nav.graph.findStartDestination().id) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
+                            onClick = { nav.navigateToTab(tab.route) },
                             icon = { Icon(tab.icon, contentDescription = null) },
                             label = { Text(stringResource(tab.label)) },
                         )
@@ -117,6 +122,7 @@ fun OpenFatNavHost() {
                     )
                 }
                 composable<WeightRoute> { WeightScreen() }
+                composable<MedicationsRoute> { MedicationsScreen() }
                 composable<SettingsRoute> {
                     SettingsScreen(
                         onOpenMeals = { nav.navigate(MealsRoute) },
@@ -129,5 +135,13 @@ fun OpenFatNavHost() {
                 composable<ProductsRoute> { ProductsScreen(onBack = { nav.popBackStack() }) }
             }
         }
+    }
+}
+
+private fun NavHostController.navigateToTab(route: Any) {
+    navigate(route) {
+        popUpTo(graph.findStartDestination().id) { saveState = true }
+        launchSingleTop = true
+        restoreState = true
     }
 }

@@ -1,6 +1,8 @@
 package dev.sterrist.openfat.data.backup
 
 import dev.sterrist.openfat.data.db.MealEntity
+import dev.sterrist.openfat.data.db.MedicationEntity
+import dev.sterrist.openfat.data.db.MedicationIntakeEntity
 import dev.sterrist.openfat.data.db.ProductEntity
 import dev.sterrist.openfat.data.remote.isValidBarcode
 import dev.sterrist.openfat.data.repo.SettingsRepository
@@ -60,11 +62,20 @@ object ImportPlanner {
         }
         val settings = file.settings.filter { it.key in SettingsRepository.IMPORTABLE_KEYS }
             .keep { SettingsRepository.isValidImportedSetting(it.key, it.value) }
+        val medications = file.medications.distinctBy { it.id }.keep { m ->
+            validId(m.id) && validText(m.name) && optText(m.dose) && m.times.length <= 1000 &&
+                MedicationEntity.parseTimes(m.times).isNotEmpty() && m.startAt >= 0 && m.createdAt >= 0
+        }.map { m -> m.copy(times = MedicationEntity.formatTimes(m.timeList)) }
+        val medicationIds = medications.mapTo(HashSet()) { it.id }
+        val intakes = file.intakes.distinctBy { it.id }.distinctBy { intakeKey(it) }.keep { i ->
+            validId(i.id) && i.medicationId in medicationIds && validDay(i.date) && i.time in 0 until 24 * 60 && i.at >= 0
+        }
 
         return Sanitized(
             file.copy(
                 products = products, meals = meals, snacks = snacks, entries = entries,
                 weights = weights, norms = norms, settings = settings,
+                medications = medications, intakes = intakes,
             ),
             skipped,
         )
@@ -76,10 +87,11 @@ object ImportPlanner {
             mode = ImportMode.REPLACE,
             products = f.products, meals = f.meals, snacks = f.snacks, entries = f.entries,
             weights = f.weights, norms = f.norms, settings = f.settings,
+            medications = f.medications, intakes = f.intakes,
             summary = ImportSummary(
                 products = f.products.size, meals = f.meals.size, snacks = f.snacks.size,
                 entries = f.entries.size, weights = f.weights.size, weightConflicts = 0,
-                skippedInvalid = sanitized.skipped,
+                skippedInvalid = sanitized.skipped, medications = f.medications.size,
             ),
         )
     }
@@ -150,6 +162,10 @@ object ImportPlanner {
             }
         }
 
+        // Препараты и отметки: совпадающие по ID и уже отмеченные приёмы не трогаем.
+        val newMedications = f.medications.filter { it.id !in local.medicationIds }
+        val newIntakes = f.intakes.filter { it.id !in local.intakeIds && intakeKey(it) !in local.intakeKeys }
+
         return ImportPlan(
             mode = ImportMode.MERGE,
             products = newProducts,
@@ -159,6 +175,8 @@ object ImportPlanner {
             weights = weights,
             norms = f.norms,
             settings = f.settings,
+            medications = newMedications,
+            intakes = newIntakes,
             summary = ImportSummary(
                 products = newProducts.size,
                 meals = newMeals.size,
@@ -167,9 +185,12 @@ object ImportPlanner {
                 weights = weights.size - conflicts,
                 weightConflicts = conflicts,
                 skippedInvalid = sanitized.skipped,
+                medications = newMedications.size,
             ),
         )
     }
+
+    fun intakeKey(i: MedicationIntakeEntity) = "${i.medicationId}|${i.date}|${i.time}"
 
     private fun validId(id: String) = id.isNotBlank() && id.length <= 64
     private fun validText(s: String) = s.isNotBlank() && s.length <= MAX_TEXT

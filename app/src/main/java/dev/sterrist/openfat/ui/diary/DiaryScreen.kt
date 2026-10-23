@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,7 +14,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -24,6 +27,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,6 +42,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -51,7 +56,6 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -59,6 +63,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -149,23 +154,26 @@ fun DiaryScreen(
     ) { padding ->
         LazyColumn(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = padding.calculateTopPadding() + 8.dp, bottom = padding.calculateBottomPadding() + 24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxSize(),
         ) {
             item(key = "header") { DayHeader(state.total, state.norm) }
 
-            items(state.meals, key = { "meal-" + it.meal.id }) { section ->
-                var menuOpen by remember { mutableStateOf(false) }
-                var renaming by rememberSaveable { mutableStateOf(false) }
-                var confirmDelete by rememberSaveable { mutableStateOf(false) }
-                SlotCard(
-                    title = section.meal.name,
-                    total = section.total,
+            state.meals.forEach { section ->
+                slotItems(
+                    key = "meal-" + section.meal.id,
                     entries = section.entries,
                     onAdd = { onAddFood(state.day, AddTarget.Meal(section.meal.id)) },
                     onEntryClick = { viewModel.startEditing(it.id) },
                     onEntryDelete = { viewModel.deleteEntry(it.id) },
-                    menu = {
+                ) {
+                    var menuOpen by remember { mutableStateOf(false) }
+                    var renaming by rememberSaveable { mutableStateOf(false) }
+                    var confirmDelete by rememberSaveable { mutableStateOf(false) }
+                    SlotHeader(
+                        title = section.meal.name,
+                        total = section.total,
+                        empty = section.entries.isEmpty(),
+                    ) {
                         Box {
                             IconButton(onClick = { menuOpen = true }) {
                                 Icon(Icons.Default.MoreVert, stringResource(R.string.meal_actions, section.meal.name))
@@ -175,24 +183,24 @@ fun DiaryScreen(
                                 DropdownMenuItem(text = { Text(stringResource(R.string.delete)) }, onClick = { menuOpen = false; confirmDelete = true })
                             }
                         }
-                    },
-                )
-                if (renaming) {
-                    NameDialog(
-                        title = stringResource(R.string.rename_meal),
-                        initial = section.meal.name,
-                        onConfirm = { viewModel.renameMeal(section.meal.id, it); renaming = false },
-                        onDismiss = { renaming = false },
-                    )
-                }
-                if (confirmDelete) {
-                    ConfirmDialog(
-                        title = stringResource(R.string.delete_meal_title, section.meal.name),
-                        text = stringResource(R.string.delete_meal_text),
-                        confirmLabel = stringResource(R.string.delete),
-                        onConfirm = { viewModel.deleteMeal(section.meal.id); confirmDelete = false },
-                        onDismiss = { confirmDelete = false },
-                    )
+                    }
+                    if (renaming) {
+                        NameDialog(
+                            title = stringResource(R.string.rename_meal),
+                            initial = section.meal.name,
+                            onConfirm = { viewModel.renameMeal(section.meal.id, it); renaming = false },
+                            onDismiss = { renaming = false },
+                        )
+                    }
+                    if (confirmDelete) {
+                        ConfirmDialog(
+                            title = stringResource(R.string.delete_meal_title, section.meal.name),
+                            text = stringResource(R.string.delete_meal_text),
+                            confirmLabel = stringResource(R.string.delete),
+                            onConfirm = { viewModel.deleteMeal(section.meal.id); confirmDelete = false },
+                            onDismiss = { confirmDelete = false },
+                        )
+                    }
                 }
             }
 
@@ -201,22 +209,26 @@ fun DiaryScreen(
                     Text(
                         stringResource(R.string.snacks),
                         style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(top = 8.dp),
+                        modifier = Modifier.padding(top = 20.dp),
                     )
                 }
             }
-            items(state.snacks, key = { "snack-" + it.snack.id }) { section ->
-                var menuOpen by remember { mutableStateOf(false) }
-                var editTime by rememberSaveable { mutableStateOf(false) }
-                var confirmDelete by rememberSaveable { mutableStateOf(false) }
-                SlotCard(
-                    title = stringResource(R.string.snack_at, formatTime(section.snack.timeMinutes)),
-                    total = section.total,
+            state.snacks.forEach { section ->
+                slotItems(
+                    key = "snack-" + section.snack.id,
                     entries = section.entries,
                     onAdd = { onAddFood(state.day, AddTarget.Snack(section.snack.id)) },
                     onEntryClick = { viewModel.startEditing(it.id) },
                     onEntryDelete = { viewModel.deleteEntry(it.id) },
-                    menu = {
+                ) {
+                    var menuOpen by remember { mutableStateOf(false) }
+                    var editTime by rememberSaveable { mutableStateOf(false) }
+                    var confirmDelete by rememberSaveable { mutableStateOf(false) }
+                    SlotHeader(
+                        title = stringResource(R.string.snack_at, formatTime(section.snack.timeMinutes)),
+                        total = section.total,
+                        empty = section.entries.isEmpty(),
+                    ) {
                         Box {
                             IconButton(onClick = { menuOpen = true }) {
                                 Icon(Icons.Default.MoreVert, stringResource(R.string.snack_actions))
@@ -226,29 +238,29 @@ fun DiaryScreen(
                                 DropdownMenuItem(text = { Text(stringResource(R.string.delete)) }, onClick = { menuOpen = false; confirmDelete = true })
                             }
                         }
-                    },
-                )
-                if (editTime) {
-                    TimePickerDialog(
-                        title = stringResource(R.string.snack_time),
-                        initialMinutes = section.snack.timeMinutes,
-                        onPick = { viewModel.updateSnackTime(section.snack.id, it); editTime = false },
-                        onDismiss = { editTime = false },
-                    )
-                }
-                if (confirmDelete) {
-                    ConfirmDialog(
-                        title = stringResource(R.string.delete_snack_title),
-                        text = stringResource(R.string.delete_snack_text),
-                        confirmLabel = stringResource(R.string.delete),
-                        onConfirm = { viewModel.deleteSnack(section.snack.id); confirmDelete = false },
-                        onDismiss = { confirmDelete = false },
-                    )
+                    }
+                    if (editTime) {
+                        TimePickerDialog(
+                            title = stringResource(R.string.snack_time),
+                            initialMinutes = section.snack.timeMinutes,
+                            onPick = { viewModel.updateSnackTime(section.snack.id, it); editTime = false },
+                            onDismiss = { editTime = false },
+                        )
+                    }
+                    if (confirmDelete) {
+                        ConfirmDialog(
+                            title = stringResource(R.string.delete_snack_title),
+                            text = stringResource(R.string.delete_snack_text),
+                            confirmLabel = stringResource(R.string.delete),
+                            onConfirm = { viewModel.deleteSnack(section.snack.id); confirmDelete = false },
+                            onDismiss = { confirmDelete = false },
+                        )
+                    }
                 }
             }
 
             item(key = "actions") {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 20.dp)) {
                     Button(onClick = { showNewSnackTime = true }, modifier = Modifier.fillMaxWidth()) {
                         Icon(Icons.Default.Add, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
@@ -368,64 +380,94 @@ private fun MacroProgress(label: String, value: Double, target: Double, modifier
     }
 }
 
+/**
+ * Приём пищи или перекус в виде нескольких элементов ленивого списка: шапка, по элементу на запись
+ * и кнопка «Добавить». Вместе они выглядят как одна карточка, но длинный приём не собирается
+ * целиком, когда попадает на экран, — прокрутка остаётся плавной при любом числе записей.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun SlotCard(
-    title: String,
-    total: Macros,
+private fun LazyListScope.slotItems(
+    key: String,
     entries: List<FoodEntryEntity>,
     onAdd: () -> Unit,
     onEntryClick: (FoodEntryEntity) -> Unit,
     onEntryDelete: (FoodEntryEntity) -> Unit,
-    menu: @Composable () -> Unit,
+    header: @Composable () -> Unit,
 ) {
-    Card(Modifier.fillMaxWidth()) {
-        Row(
-            Modifier.fillMaxWidth().padding(start = 16.dp, top = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                title,
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
-            )
-            // Сумма калорий за приём — всегда видна рядом с названием, даже если пока 0.
-            Text(
-                stringResource(R.string.kcal_value, formatKcal(total.kcal)),
-                style = MaterialTheme.typography.titleMedium,
-                color = if (entries.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(start = 8.dp),
-            )
-            menu()
-        }
-        entries.forEach { entry ->
-            key(entry.id) {
-                val dismissState = rememberSwipeToDismissBoxState()
-                SwipeToDismissBox(
-                    state = dismissState,
-                    enableDismissFromStartToEnd = false,
-                    onDismiss = { value -> if (value == SwipeToDismissBoxValue.EndToStart) onEntryDelete(entry) },
-                    backgroundContent = {
-                        Box(
-                            Modifier.fillMaxSize().padding(horizontal = 24.dp),
-                            contentAlignment = Alignment.CenterEnd,
-                        ) {
-                            Icon(Icons.Default.Delete, stringResource(R.string.delete), tint = MaterialTheme.colorScheme.error)
-                        }
-                    },
-                ) {
-                    EntryRow(entry, onClick = { onEntryClick(entry) })
-                }
+    item(key = "$key-head", contentType = "slot-head") {
+        SlotPart(SlotPosition.Top, Modifier.padding(top = 12.dp)) { header() }
+    }
+    items(entries, key = { "entry-" + it.id }, contentType = { "entry" }) { entry ->
+        SlotPart(SlotPosition.Middle) {
+            val dismissState = rememberSwipeToDismissBoxState()
+            SwipeToDismissBox(
+                state = dismissState,
+                enableDismissFromStartToEnd = false,
+                onDismiss = { value -> if (value == SwipeToDismissBoxValue.EndToStart) onEntryDelete(entry) },
+                backgroundContent = {
+                    Box(
+                        Modifier.fillMaxSize().padding(horizontal = 24.dp),
+                        contentAlignment = Alignment.CenterEnd,
+                    ) {
+                        Icon(Icons.Default.Delete, stringResource(R.string.delete), tint = MaterialTheme.colorScheme.error)
+                    }
+                },
+            ) {
+                EntryRow(entry, onClick = { onEntryClick(entry) })
             }
         }
-        if (entries.isNotEmpty()) HorizontalDivider()
-        TextButton(onClick = onAdd, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
-            Icon(Icons.Default.Add, contentDescription = null)
-            Spacer(Modifier.width(8.dp))
-            Text(stringResource(R.string.add_food))
+    }
+    item(key = "$key-foot", contentType = "slot-foot") {
+        SlotPart(SlotPosition.Bottom) {
+            if (entries.isNotEmpty()) HorizontalDivider()
+            TextButton(onClick = onAdd, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
+                Icon(Icons.Default.Add, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.add_food))
+            }
         }
+    }
+}
+
+private enum class SlotPosition { Top, Middle, Bottom }
+
+/** Кусок карточки: скруглены только внешние углы, цвет — как у [Card]. */
+@Composable
+private fun SlotPart(position: SlotPosition, modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+    val medium = MaterialTheme.shapes.medium
+    val shape = remember(position, medium) {
+        when (position) {
+            SlotPosition.Top -> medium.copy(bottomStart = ZeroCornerSize, bottomEnd = ZeroCornerSize)
+            SlotPosition.Middle -> RectangleShape
+            SlotPosition.Bottom -> medium.copy(topStart = ZeroCornerSize, topEnd = ZeroCornerSize)
+        }
+    }
+    Surface(shape = shape, color = CardDefaults.cardColors().containerColor, modifier = modifier.fillMaxWidth()) {
+        Column(content = content)
+    }
+}
+
+@Composable
+private fun SlotHeader(title: String, total: Macros, empty: Boolean, menu: @Composable () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().padding(start = 16.dp, top = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            title,
+            style = MaterialTheme.typography.titleMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
+        // Сумма калорий за приём — всегда видна рядом с названием, даже если пока 0.
+        Text(
+            stringResource(R.string.kcal_value, formatKcal(total.kcal)),
+            style = MaterialTheme.typography.titleMedium,
+            color = if (empty) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(start = 8.dp),
+        )
+        menu()
     }
 }
 
