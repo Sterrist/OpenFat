@@ -1,5 +1,6 @@
 package dev.sterrist.openfat.data.db
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -7,6 +8,7 @@ import androidx.room.PrimaryKey
 import dev.sterrist.openfat.domain.Macros
 import dev.sterrist.openfat.domain.Per100
 import dev.sterrist.openfat.domain.PortionUnit
+import dev.sterrist.openfat.domain.Repeat
 import kotlinx.serialization.Serializable
 
 /** Откуда продукт попал в справочник. USDA больше не ищется, но остаётся для продуктов и бэкапов, сохранённых раньше. */
@@ -138,7 +140,7 @@ data class SettingEntity(
     val value: String,
 )
 
-/** Препарат с ежедневным расписанием приёмов. */
+/** Препарат: приёмы в заданное время в дни, которые определяет повтор (каждый день, раз в N дней, недель или месяцев). */
 @Serializable
 @Entity(tableName = "medications")
 data class MedicationEntity(
@@ -155,8 +157,16 @@ data class MedicationEntity(
      */
     val startAt: Long,
     val createdAt: Long,
+    /** Единица повтора: [Repeat.UNIT_DAY], [Repeat.UNIT_WEEK] или [Repeat.UNIT_MONTH]. */
+    @ColumnInfo(defaultValue = "0") val repeatUnit: Int = Repeat.UNIT_DAY,
+    /** Через сколько единиц повтор: 1 — каждый день/неделю/месяц. */
+    @ColumnInfo(defaultValue = "1") val repeatEvery: Int = 1,
+    /** День (epochDay), от которого считается повтор. */
+    @ColumnInfo(defaultValue = "0") val repeatAnchor: Long = 0,
 ) {
     val timeList: List<Int> get() = parseTimes(times)
+
+    val repeat: Repeat get() = Repeat(repeatUnit, repeatEvery, repeatAnchor)
 
     companion object {
         fun parseTimes(value: String): List<Int> =

@@ -7,6 +7,7 @@ import dev.sterrist.openfat.data.db.ProductEntity
 import dev.sterrist.openfat.data.remote.isValidBarcode
 import dev.sterrist.openfat.data.repo.SettingsRepository
 import dev.sterrist.openfat.domain.Norm
+import dev.sterrist.openfat.domain.Repeat
 import java.util.UUID
 
 /**
@@ -64,7 +65,9 @@ object ImportPlanner {
             .keep { SettingsRepository.isValidImportedSetting(it.key, it.value) }
         val medications = file.medications.distinctBy { it.id }.keep { m ->
             validId(m.id) && validText(m.name) && optText(m.dose) && m.times.length <= 1000 &&
-                MedicationEntity.parseTimes(m.times).isNotEmpty() && m.startAt >= 0 && m.createdAt >= 0
+                MedicationEntity.parseTimes(m.times).isNotEmpty() && m.startAt >= 0 && m.createdAt >= 0 &&
+                m.repeatUnit in Repeat.UNIT_DAY..Repeat.UNIT_MONTH && m.repeatEvery in 1..Repeat.MAX_EVERY &&
+                validDay(m.repeatAnchor)
         }.map { m -> m.copy(times = MedicationEntity.formatTimes(m.timeList)) }
         val medicationIds = medications.mapTo(HashSet()) { it.id }
         val intakes = file.intakes.distinctBy { it.id }.distinctBy { intakeKey(it) }.keep { i ->

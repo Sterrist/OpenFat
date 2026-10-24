@@ -265,6 +265,33 @@
     <string name="med_dose">Дозировка</string>
     <string name="med_dose_hint">Например, 1 таблетка</string>
     <string name="med_times">Время приёма</string>
+    <string name="med_repeat">Как часто</string>
+    <string name="med_repeat_every">Интервал</string>
+    <string name="med_unit_days">дней</string>
+    <string name="med_unit_weeks">недель</string>
+    <string name="med_unit_months">месяцев</string>
+    <string name="med_repeat_start">Первый приём: %1$s</string>
+    <string name="med_repeat_week">Раз в неделю</string>
+    <string name="med_repeat_month">Раз в месяц</string>
+    <string name="med_repeat_on_day">%1$d-го числа</string>
+    <plurals name="med_repeat_days">
+        <item quantity="one">Каждые %1$d день</item>
+        <item quantity="few">Каждые %1$d дня</item>
+        <item quantity="many">Каждые %1$d дней</item>
+        <item quantity="other">Каждые %1$d дня</item>
+    </plurals>
+    <plurals name="med_repeat_weeks">
+        <item quantity="one">Раз в %1$d неделю</item>
+        <item quantity="few">Раз в %1$d недели</item>
+        <item quantity="many">Раз в %1$d недель</item>
+        <item quantity="other">Раз в %1$d недели</item>
+    </plurals>
+    <plurals name="med_repeat_months">
+        <item quantity="one">Раз в %1$d месяц</item>
+        <item quantity="few">Раз в %1$d месяца</item>
+        <item quantity="many">Раз в %1$d месяцев</item>
+        <item quantity="other">Раз в %1$d месяца</item>
+    </plurals>
     <string name="med_add_time">Добавить время</string>
     <string name="med_remove_time">Убрать %1$s</string>
     <string name="med_empty">Добавьте препарат, и OpenFat напомнит, когда его принять. Если приём не отмечен, напоминание повторится через 1 час, потом через 2, 3 и так далее — до раза в сутки.</string>

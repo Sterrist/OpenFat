@@ -4,6 +4,7 @@ import androidx.room.withTransaction
 import dev.sterrist.openfat.data.db.MedicationEntity
 import dev.sterrist.openfat.data.db.MedicationIntakeEntity
 import dev.sterrist.openfat.data.db.OpenFatDatabase
+import dev.sterrist.openfat.domain.Repeat
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 
@@ -21,12 +22,13 @@ class MedicationRepository(private val db: OpenFatDatabase) {
 
     suspend fun intakesSince(fromDay: Long): List<MedicationIntakeEntity> = dao.intakesSince(fromDay)
 
-    /** Создаёт препарат или обновляет [id]. Смена времени приёмов начинает расписание заново с текущего момента. */
-    suspend fun save(id: String?, name: String, dose: String?, times: List<Int>) {
+    /** Создаёт препарат или обновляет [id]. Смена времени или повтора начинает расписание заново с текущего момента. */
+    suspend fun save(id: String?, name: String, dose: String?, times: List<Int>, repeat: Repeat) {
         val now = System.currentTimeMillis()
         val timesValue = MedicationEntity.formatTimes(times)
         db.withTransaction {
             val existing = id?.let { dao.byId(it) }
+            val unchanged = existing != null && existing.times == timesValue && existing.repeat == repeat
             dao.upsert(
                 MedicationEntity(
                     id = existing?.id ?: UUID.randomUUID().toString(),
@@ -34,8 +36,11 @@ class MedicationRepository(private val db: OpenFatDatabase) {
                     dose = dose?.trim()?.takeIf { it.isNotEmpty() },
                     times = timesValue,
                     active = existing?.active ?: true,
-                    startAt = if (existing != null && existing.times == timesValue) existing.startAt else now,
+                    startAt = if (unchanged) existing.startAt else now,
                     createdAt = existing?.createdAt ?: now,
+                    repeatUnit = repeat.unit,
+                    repeatEvery = repeat.every,
+                    repeatAnchor = repeat.anchorDate,
                 ),
             )
         }

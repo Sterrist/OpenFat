@@ -9,6 +9,7 @@ import dev.sterrist.openfat.data.db.MedicationIntakeEntity
 import dev.sterrist.openfat.data.reminders.MedicationReminders
 import dev.sterrist.openfat.data.repo.MedicationRepository
 import dev.sterrist.openfat.domain.MedicationSchedule
+import dev.sterrist.openfat.domain.Repeat
 import dev.sterrist.openfat.ui.common.appContainer
 import dev.sterrist.openfat.ui.common.today
 import kotlinx.coroutines.delay
@@ -74,11 +75,12 @@ class MedicationsViewModel(
             DoseUi(m, date, time, MedicationSchedule.dueAt(date, time, zone), intakeByKey["${m.id}|$date|$time"])
 
         val today = active
+            .filter { it.repeat.occursOn(day) }
             .flatMap { m -> m.timeList.map { dose(m, day, it) } }
             .sortedWith(compareBy({ it.time }, { it.medication.name.lowercase() }))
         val missed = active
             .flatMap { m ->
-                MedicationSchedule.doses(m.id, m.timeList, m.startAt, day - MedicationSchedule.LOOKBACK_DAYS, day - 1, zone)
+                MedicationSchedule.doses(m.id, m.timeList, m.startAt, day - MedicationSchedule.LOOKBACK_DAYS, day - 1, zone, m.repeat)
                     .map { dose(m, it.date, it.time) }
             }
             .filter { it.intake == null }
@@ -104,8 +106,8 @@ class MedicationsViewModel(
         viewModelScope.launch { doses.forEach { repo.mark(it.medication.id, it.date, it.time, taken = false) } }
     }
 
-    fun save(id: String?, name: String, dose: String?, times: List<Int>) {
-        viewModelScope.launch { repo.save(id, name, dose, times) }
+    fun save(id: String?, name: String, dose: String?, times: List<Int>, repeat: Repeat) {
+        viewModelScope.launch { repo.save(id, name, dose, times, repeat) }
     }
 
     fun setActive(medication: MedicationEntity, active: Boolean) {

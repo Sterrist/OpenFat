@@ -7,6 +7,43 @@ import java.time.ZoneId
 /** Плановый приём препарата [medicationId] в день [date] (epochDay) в [time] (минуты от полуночи). */
 data class Dose(val medicationId: String, val date: Long, val time: Int, val dueAt: Long)
 
+/**
+ * Как часто принимать препарат: каждые [every] дней, недель или месяцев, считая от дня [anchorDate] (epochDay).
+ * Неделя повторяется в тот же день недели, что и [anchorDate], месяц — в то же число (в коротких месяцах — в последний день).
+ */
+data class Repeat(val unit: Int = UNIT_DAY, val every: Int = 1, val anchorDate: Long = 0) {
+    /** Приём назначен на день [day] (epochDay). */
+    fun occursOn(day: Long): Boolean {
+        if (day < anchorDate) return false
+        val n = every.coerceAtLeast(1)
+        return when (unit) {
+            UNIT_WEEK -> (day - anchorDate) % (7L * n) == 0L
+            UNIT_MONTH -> {
+                val anchor = LocalDate.ofEpochDay(anchorDate)
+                val date = LocalDate.ofEpochDay(day)
+                val months = (date.year - anchor.year) * 12L + (date.monthValue - anchor.monthValue)
+                months % n == 0L && date.dayOfMonth == minOf(anchor.dayOfMonth, date.lengthOfMonth())
+            }
+            else -> (day - anchorDate) % n == 0L
+        }
+    }
+
+    /** Ближайший день приёма не раньше [fromDay] (epochDay) или null, если он дальше [MAX_SPAN_DAYS]. */
+    fun nextOccurrence(fromDay: Long): Long? = (fromDay..fromDay + MAX_SPAN_DAYS).firstOrNull { occursOn(it) }
+
+    companion object {
+        const val UNIT_DAY = 0
+        const val UNIT_WEEK = 1
+        const val UNIT_MONTH = 2
+        const val MAX_EVERY = 99
+
+        /** Самый длинный промежуток между приёмами: [MAX_EVERY] месяцев с запасом. */
+        const val MAX_SPAN_DAYS = 31L * MAX_EVERY + 31
+
+        val DAILY = Repeat()
+    }
+}
+
 /** Расписание приёмов и нарастающих напоминаний. Чистые функции без Android — покрыты тестами. */
 object MedicationSchedule {
     const val HOUR = 60 * 60 * 1000L
@@ -62,8 +99,10 @@ object MedicationSchedule {
         fromDay: Long,
         toDay: Long,
         zone: ZoneId,
+        repeat: Repeat = Repeat.DAILY,
     ): List<Dose> = buildList {
         for (day in fromDay..toDay) {
+            if (!repeat.occursOn(day)) continue
             for (time in times) {
                 val due = dueAt(day, time, zone)
                 if (due >= startAt) add(Dose(medicationId, day, time, due))

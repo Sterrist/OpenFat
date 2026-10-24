@@ -61,7 +61,7 @@ class MedicationReminders(context: Context, private val repo: MedicationReposito
         val medications = repo.all().filter { it.active }.associateBy { it.id }
         val resolved = repo.intakesSince(fromDay).mapTo(HashSet()) { doseKey(it.medicationId, it.date, it.time) }
         val doses = medications.values
-            .flatMap { MedicationSchedule.doses(it.id, it.timeList, it.startAt, fromDay, today + 1, zone) }
+            .flatMap { MedicationSchedule.doses(it.id, it.timeList, it.startAt, fromDay, today + 1, zone, it.repeat) }
             .filter { doseKey(it.medicationId, it.date, it.time) !in resolved }
         val pending = doses.filter { it.dueAt <= now }
 
@@ -81,7 +81,12 @@ class MedicationReminders(context: Context, private val repo: MedicationReposito
             .forEach { notifications.cancel(it.tag, it.id) }
         prefs.edit { putLong(KEY_LAST_CHECK, now) }
 
-        schedule(doses.minOfOrNull { MedicationSchedule.nextReminderAt(it.dueAt, now) })
+        // Раз в неделю или месяц следующий приём может быть далеко за окном выше: ищем его отдельно.
+        val upcoming = medications.values.flatMap { m ->
+            val day = m.repeat.nextOccurrence(today + 2) ?: return@flatMap emptyList()
+            MedicationSchedule.doses(m.id, m.timeList, m.startAt, day, day, zone, m.repeat)
+        }
+        schedule((doses + upcoming).minOfOrNull { MedicationSchedule.nextReminderAt(it.dueAt, now) })
     }
 
     /** Убирает уведомление сразу, не дожидаясь [sync]. */

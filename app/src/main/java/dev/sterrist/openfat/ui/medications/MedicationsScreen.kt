@@ -19,6 +19,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.Add
@@ -39,12 +42,17 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,8 +62,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -65,12 +75,18 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.sterrist.openfat.R
 import dev.sterrist.openfat.data.db.MedicationEntity
+import dev.sterrist.openfat.domain.Repeat
 import dev.sterrist.openfat.ui.common.ConfirmDialog
+import dev.sterrist.openfat.ui.common.DayPickerDialog
 import dev.sterrist.openfat.ui.common.TimePickerDialog
 import dev.sterrist.openfat.ui.common.formatShortDate
 import dev.sterrist.openfat.ui.common.formatTime
+import dev.sterrist.openfat.ui.common.today
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
+import java.time.format.TextStyle
+import java.util.Locale
 
 /** Признак «новый препарат» в состоянии редактора. */
 private const val NEW_MEDICATION = ""
@@ -192,8 +208,8 @@ fun MedicationsScreen(viewModel: MedicationsViewModel = viewModel(factory = Medi
         }
         MedicationDialog(
             medication = existing,
-            onSave = { name, dose, times ->
-                viewModel.save(existing?.id, name, dose, times)
+            onSave = { name, dose, times, repeat ->
+                viewModel.save(existing?.id, name, dose, times, repeat)
                 editing = null
                 // Разрешение спрашиваем, когда напоминания действительно понадобились.
                 if (existing == null && needsRuntimePermission) permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -285,6 +301,7 @@ private fun DoseRow(
 private fun MedicationRow(medication: MedicationEntity, onClick: () -> Unit, onActiveChange: (Boolean) -> Unit) {
     val details = buildList {
         medication.dose?.let(::add)
+        repeatLabel(medication.repeat)?.let(::add)
         add(medication.timeList.joinToString(", ") { formatTime(it) })
         if (!medication.active) add(stringResource(R.string.med_paused))
     }.filter { it.isNotEmpty() }.joinToString(" · ")
@@ -298,24 +315,52 @@ private fun MedicationRow(medication: MedicationEntity, onClick: () -> Unit, onA
     }
 }
 
+/** Как часто принимать, для списка препаратов. Ежедневный приём подписи не требует. */
+@Composable
+private fun repeatLabel(repeat: Repeat): String? {
+    val n = repeat.every
+    val anchor = LocalDate.ofEpochDay(repeat.anchorDate)
+    return when (repeat.unit) {
+        Repeat.UNIT_WEEK -> {
+            val base = if (n == 1) stringResource(R.string.med_repeat_week) else pluralStringResource(R.plurals.med_repeat_weeks, n, n)
+            base + ", " + anchor.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.forLanguageTag("ru"))
+        }
+        Repeat.UNIT_MONTH -> {
+            val base = if (n == 1) stringResource(R.string.med_repeat_month) else pluralStringResource(R.plurals.med_repeat_months, n, n)
+            base + ", " + stringResource(R.string.med_repeat_on_day, anchor.dayOfMonth)
+        }
+        else -> if (n == 1) null else pluralStringResource(R.plurals.med_repeat_days, n, n)
+    }
+}
+
 @Composable
 private fun MedicationDialog(
     medication: MedicationEntity?,
-    onSave: (name: String, dose: String?, times: List<Int>) -> Unit,
+    onSave: (name: String, dose: String?, times: List<Int>, repeat: Repeat) -> Unit,
     onDelete: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     var name by rememberSaveable { mutableStateOf(medication?.name.orEmpty()) }
     var dose by rememberSaveable { mutableStateOf(medication?.dose.orEmpty()) }
     val times = remember { mutableStateListOf<Int>().apply { addAll(medication?.timeList ?: listOf(9 * 60)) } }
+    var repeatUnit by rememberSaveable { mutableIntStateOf(medication?.repeatUnit ?: Repeat.UNIT_DAY) }
+    var everyText by rememberSaveable { mutableStateOf((medication?.repeatEvery ?: 1).toString()) }
+    // У ежедневных препаратов опорного дня нет (0), для них подставляем сегодня.
+    var anchor by rememberSaveable { mutableLongStateOf(medication?.repeatAnchor?.takeIf { it > 0 } ?: today()) }
     var pickingTime by remember { mutableStateOf(false) }
+    var pickingDay by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
+    val every = everyText.toIntOrNull()?.takeIf { it in 1..Repeat.MAX_EVERY }
+    val daily = repeatUnit == Repeat.UNIT_DAY && every == 1
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(if (medication == null) R.string.med_new else R.string.med_edit)) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+            ) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
@@ -354,6 +399,36 @@ private fun MedicationDialog(
                         leadingIcon = { Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp)) },
                     )
                 }
+                Text(stringResource(R.string.med_repeat), style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 8.dp))
+                OutlinedTextField(
+                    value = everyText,
+                    onValueChange = { value -> everyText = value.filter(Char::isDigit).take(2) },
+                    label = { Text(stringResource(R.string.med_repeat_every)) },
+                    isError = every == null,
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                val units = listOf(
+                    Repeat.UNIT_DAY to R.string.med_unit_days,
+                    Repeat.UNIT_WEEK to R.string.med_unit_weeks,
+                    Repeat.UNIT_MONTH to R.string.med_unit_months,
+                )
+                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                    units.forEachIndexed { i, (unit, label) ->
+                        SegmentedButton(
+                            selected = repeatUnit == unit,
+                            onClick = { repeatUnit = unit },
+                            shape = SegmentedButtonDefaults.itemShape(i, units.size),
+                            icon = {},
+                        ) { Text(stringResource(label), maxLines = 1) }
+                    }
+                }
+                if (!daily) {
+                    TextButton(onClick = { pickingDay = true }) {
+                        Text(stringResource(R.string.med_repeat_start, formatShortDate(anchor)))
+                    }
+                }
                 if (medication != null) {
                     TextButton(onClick = { confirmDelete = true }, modifier = Modifier.padding(top = 8.dp)) {
                         Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
@@ -363,8 +438,8 @@ private fun MedicationDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = { onSave(name, dose, times.toList()) },
-                enabled = name.isNotBlank() && times.isNotEmpty(),
+                onClick = { onSave(name, dose, times.toList(), Repeat(repeatUnit, every ?: 1, if (daily) 0 else anchor)) },
+                enabled = name.isNotBlank() && times.isNotEmpty() && every != null,
             ) { Text(stringResource(R.string.save)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
@@ -379,6 +454,16 @@ private fun MedicationDialog(
                 pickingTime = false
             },
             onDismiss = { pickingTime = false },
+        )
+    }
+    if (pickingDay) {
+        DayPickerDialog(
+            initialDay = anchor,
+            onPick = {
+                anchor = it
+                pickingDay = false
+            },
+            onDismiss = { pickingDay = false },
         )
     }
     if (confirmDelete && medication != null) {
